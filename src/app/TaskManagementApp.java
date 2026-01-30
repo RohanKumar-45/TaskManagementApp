@@ -15,6 +15,7 @@ import service.UserService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -472,7 +473,8 @@ public class TaskManagementApp {
             System.out.println("12. Find by Tag");
             System.out.println("13. Find by Any Tag");
             System.out.println("14. Find by All Tags");
-            System.out.println("15. Back to Main Menu");
+            System.out.println("15. Find Overdue Tasks");
+            System.out.println("16. Back to Main Menu");
 
             int choice = getIntInput("Enter your choice: ");
 
@@ -491,7 +493,8 @@ public class TaskManagementApp {
                 case 12 -> findByTag();
                 case 13 -> findByAnyTag();
                 case 14 -> findByAllTags();
-                case 15 -> {
+                case 15 -> findOverdueTasks();
+                case 16 -> {
                     return;
                 }
                 default -> System.out.println("Invalid choice.");
@@ -641,6 +644,24 @@ public class TaskManagementApp {
 
         List<Task> tasks = searchService.findByAllTag(tags);
         displayTaskList("Tasks with all specified tags", tasks);
+    }
+
+    private static void findOverdueTasks() {
+        try {
+            Map<Task, Long> overdue = searchService.findOverdueTasks();
+            System.out.println("\n--- Overdue Tasks (Total: " + overdue.size() + ") ---");
+
+            overdue.entrySet().stream()
+                    .sorted(Map.Entry.<Task, Long>comparingByValue(Comparator.reverseOrder()))
+                    .forEach(entry -> {
+                        Task task = entry.getKey();
+                        Long days = entry.getValue();
+                        System.out.printf("ID: %s | %s | Status: %s | Due: %s | Overdue by: %d days%n",
+                                task.getId(), task.getTitle(), task.getStatus(), task.getDueDate(), days);
+                    });
+        } catch (Exception e) {
+            System.out.println(" Error: " + e.getMessage());
+        }
     }
 
     private static boolean ensureCurrentUser() {

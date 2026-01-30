@@ -6,6 +6,7 @@ import model.task.TaskStatus;
 import model.user.User;
 import repository.TaskRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -114,4 +115,16 @@ public class TaskSearchService {
                 .collect(Collectors.toList());
     }
 
+    public Map<Task , Long> findOverdueTasks(){
+        LocalDate today = LocalDate.now();
+
+        return taskRepository.findAll().stream()
+                .filter(task -> task.getDueDate() != null)
+                .filter(task -> task.getStatus() != TaskStatus.COMPLETED && task.getStatus() != TaskStatus.CANCELLED)
+                .filter(task -> task.getDueDate().isBefore(today))
+                .collect(Collectors.toMap(
+                        task -> task ,
+                        task -> today.toEpochDay() - task.getDueDate().toEpochDay()
+                ));
+    }
 }
